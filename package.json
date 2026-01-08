@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/ratelimit_service",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Shared rate limiting library based on RevenueCat entitlements",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -55,12 +55,12 @@
   "author": "Sudobility",
   "license": "MIT",
   "peerDependencies": {
-    "@sudobility/types": "^1.9.40",
+    "@sudobility/types": "^1.9.41",
     "drizzle-orm": "^0.45.0",
     "hono": "^4.0.0"
   },
   "devDependencies": {
-    "@sudobility/types": "^1.9.40",
+    "@sudobility/types": "^1.9.41",
     "@types/bun": "latest",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
