@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { EntitlementHelper } from "../src/helpers/EntitlementHelper";
 import type { RateLimitsConfig } from "../src/types";
 

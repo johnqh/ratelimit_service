@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/ratelimit_service",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Shared rate limiting library based on RevenueCat entitlements",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,8 +30,8 @@
     "build:cjs-rename": "find dist -name '*.js' -not -name '*.cjs' -exec sh -c 'cp \"$1\" \"${1%.js}.cjs\"' _ {} \\;",
     "clean": "rm -rf dist",
     "dev": "bunx tsc --watch",
-    "test": "bun test",
-    "test:run": "bun test",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "bunx eslint src/",
     "lint:fix": "bunx eslint src/ --fix",
     "typecheck": "bunx tsc --noEmit",
@@ -60,6 +60,7 @@
     "hono": "^4.0.0"
   },
   "devDependencies": {
+    "vitest": "^4.0.4",
     "@sudobility/types": "^1.9.43",
     "@types/bun": "latest",
     "@types/node": "^24.10.1",
