@@ -1,42 +1,35 @@
 {
   "name": "@sudobility/ratelimit_service",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "Shared rate limiting library based on RevenueCat entitlements",
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./middleware/hono": {
       "import": "./dist/middleware/hono.js",
-      "require": "./dist/middleware/hono.cjs",
       "types": "./dist/middleware/hono.d.ts"
     },
     "./schema": {
       "import": "./dist/schema/rate-limits.js",
-      "require": "./dist/schema/rate-limits.cjs",
       "types": "./dist/schema/rate-limits.d.ts"
     }
   },
   "scripts": {
-    "build": "bun run build:esm && bun run build:cjs",
-    "build:esm": "bunx tsc -p tsconfig.esm.json",
-    "build:cjs": "bunx tsc -p tsconfig.cjs.json && bun run build:cjs-rename",
-    "build:cjs-rename": "find dist -name '*.js' -not -name '*.cjs' -exec sh -c 'cp \"$1\" \"${1%.js}.cjs\"' _ {} \\;",
+    "build": "tsc -p tsconfig.esm.json",
     "clean": "rm -rf dist",
-    "dev": "bunx tsc --watch",
+    "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "bunx eslint src/",
-    "lint:fix": "bunx eslint src/ --fix",
-    "typecheck": "bunx tsc --noEmit",
-    "format": "bunx prettier --write \"src/**/*.ts\"",
-    "format:check": "bunx prettier --check \"src/**/*.ts\"",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "verify": "bun run typecheck && bun run lint && bun run test && bun run build",
     "prepublishOnly": "bun run clean && bun run verify"
   },
