@@ -31,6 +31,10 @@ export interface RevenueCatHelperConfig {
  * // Get full subscription info including start date
  * const info = await rcHelper.getSubscriptionInfo(userId);
  * // Returns: { entitlements: ["pro"], subscriptionStartedAt: Date }
+ *
+ * // In production mode, sandbox purchases are rejected
+ * const info = await rcHelper.getSubscriptionInfo(userId, false);
+ * // Returns: ["none"] if user only has sandbox purchases
  * ```
  */
 export class RevenueCatHelper {
@@ -46,11 +50,15 @@ export class RevenueCatHelper {
    * Get active entitlement names for a user.
    *
    * @param userId - The RevenueCat app_user_id (usually Firebase UID)
+   * @param testMode - If true, accept sandbox purchases. If false (production), reject sandbox purchases. Defaults to false.
    * @returns Array of active entitlement names, or ["none"] if no active entitlements
    * @throws Error if RevenueCat API returns an error (other than 404)
    */
-  async getEntitlements(userId: string): Promise<string[]> {
-    const info = await this.getSubscriptionInfo(userId);
+  async getEntitlements(
+    userId: string,
+    testMode: boolean = false
+  ): Promise<string[]> {
+    const info = await this.getSubscriptionInfo(userId, testMode);
     return info.entitlements;
   }
 
@@ -58,10 +66,14 @@ export class RevenueCatHelper {
    * Get full subscription info including entitlements and subscription start date.
    *
    * @param userId - The RevenueCat app_user_id (usually Firebase UID)
+   * @param testMode - If true, accept sandbox purchases. If false (production), reject sandbox purchases. Defaults to false.
    * @returns SubscriptionInfo with entitlements and subscriptionStartedAt
    * @throws Error if RevenueCat API returns an error (other than 404)
    */
-  async getSubscriptionInfo(userId: string): Promise<SubscriptionInfo> {
+  async getSubscriptionInfo(
+    userId: string,
+    testMode: boolean = false
+  ): Promise<SubscriptionInfo> {
     const response = await fetch(
       `${this.baseUrl}/subscribers/${encodeURIComponent(userId)}`,
       {
@@ -89,6 +101,7 @@ export class RevenueCatHelper {
 
     const data = (await response.json()) as RevenueCatSubscriberResponse;
     const entitlements = data.subscriber?.entitlements ?? {};
+    const subscriptions = data.subscriber?.subscriptions ?? {};
 
     const now = new Date();
     const activeEntitlements: string[] = [];
@@ -99,14 +112,23 @@ export class RevenueCatHelper {
       const isActive =
         !entitlement.expires_date || new Date(entitlement.expires_date) > now;
 
-      if (isActive) {
-        activeEntitlements.push(name);
+      if (!isActive) {
+        continue;
+      }
 
-        // Track earliest purchase date for subscription month calculation
-        const purchaseDate = new Date(entitlement.purchase_date);
-        if (!earliestPurchaseDate || purchaseDate < earliestPurchaseDate) {
-          earliestPurchaseDate = purchaseDate;
-        }
+      // In production mode (testMode=false), reject sandbox purchases
+      // Check if the subscription that granted this entitlement is a sandbox purchase
+      const subscription = subscriptions[entitlement.product_identifier];
+      if (!testMode && subscription?.sandbox === true) {
+        continue;
+      }
+
+      activeEntitlements.push(name);
+
+      // Track earliest purchase date for subscription month calculation
+      const purchaseDate = new Date(entitlement.purchase_date);
+      if (!earliestPurchaseDate || purchaseDate < earliestPurchaseDate) {
+        earliestPurchaseDate = purchaseDate;
       }
     }
 

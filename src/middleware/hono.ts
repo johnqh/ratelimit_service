@@ -22,6 +22,8 @@ export interface RateLimitMiddlewareConfig {
   getUserId: (c: Context) => string | Promise<string>;
   /** Optional: Skip rate limiting for certain conditions (e.g., admin tokens) */
   shouldSkip?: (c: Context) => boolean | Promise<boolean>;
+  /** Optional: Function to get testMode from context. If true, sandbox purchases are accepted. Defaults to false. */
+  getTestMode?: (c: Context) => boolean | Promise<boolean>;
 }
 
 /**
@@ -74,11 +76,19 @@ export function createRateLimitMiddleware(config: RateLimitMiddlewareConfig) {
     // Get user ID
     const userId = await config.getUserId(c);
 
+    // Get testMode (defaults to false - production mode)
+    const testMode = config.getTestMode
+      ? await config.getTestMode(c)
+      : false;
+
     // Get user's subscription info from RevenueCat
     let entitlements: string[];
     let subscriptionStartedAt: Date | null = null;
     try {
-      const subscriptionInfo = await rcHelper.getSubscriptionInfo(userId);
+      const subscriptionInfo = await rcHelper.getSubscriptionInfo(
+        userId,
+        testMode
+      );
       entitlements = subscriptionInfo.entitlements;
       subscriptionStartedAt = subscriptionInfo.subscriptionStartedAt;
     } catch (error) {

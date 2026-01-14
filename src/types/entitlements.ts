@@ -19,12 +19,29 @@ export interface RevenueCatEntitlement {
 }
 
 /**
+ * RevenueCat subscription information from the subscriber API.
+ */
+export interface RevenueCatSubscription {
+  /** Expiration date in ISO format, or null if lifetime */
+  expires_date: string | null;
+  /** Purchase date in ISO format */
+  purchase_date: string;
+  /** Whether this is a sandbox purchase */
+  sandbox: boolean;
+  /** Store where the purchase was made */
+  store: string;
+}
+
+/**
  * Response shape from RevenueCat's GET /subscribers/{user_id} endpoint.
  */
 export interface RevenueCatSubscriberResponse {
   subscriber: {
     entitlements: {
       [key: string]: RevenueCatEntitlement;
+    };
+    subscriptions: {
+      [key: string]: RevenueCatSubscription;
     };
   };
 }

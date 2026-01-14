@@ -74,9 +74,13 @@ export class RateLimitRouteHandler {
    * Get rate limits configuration data for /ratelimits endpoint.
    *
    * @param userId - The user's ID (e.g., Firebase UID)
+   * @param testMode - If true, accept sandbox purchases. If false (production), reject sandbox purchases. Defaults to false.
    * @returns RateLimitsConfigData for API response
    */
-  async getRateLimitsConfigData(userId: string): Promise<RateLimitsConfigData> {
+  async getRateLimitsConfigData(
+    userId: string,
+    testMode: boolean = false
+  ): Promise<RateLimitsConfigData> {
     // Get all tiers from config
     const tiers: RateLimitTier[] = Object.entries(this.rateLimitsConfig).map(
       ([entitlement, limits]) => ({
@@ -90,7 +94,10 @@ export class RateLimitRouteHandler {
     let entitlements: string[];
     let subscriptionStartedAt: Date | null = null;
     try {
-      const subscriptionInfo = await this.rcHelper.getSubscriptionInfo(userId);
+      const subscriptionInfo = await this.rcHelper.getSubscriptionInfo(
+        userId,
+        testMode
+      );
       entitlements = subscriptionInfo.entitlements;
       subscriptionStartedAt = subscriptionInfo.subscriptionStartedAt;
     } catch (error) {
@@ -141,12 +148,14 @@ export class RateLimitRouteHandler {
    * @param userId - The user's ID (e.g., Firebase UID)
    * @param periodType - The period type (hour, day, month)
    * @param limit - Maximum number of entries to return (default: 100)
+   * @param testMode - If true, accept sandbox purchases. If false (production), reject sandbox purchases. Defaults to false.
    * @returns RateLimitHistoryData for API response
    */
   async getRateLimitHistoryData(
     userId: string,
     periodType: RateLimitPeriodType,
-    limit: number = 100
+    limit: number = 100,
+    testMode: boolean = false
   ): Promise<RateLimitHistoryData> {
     // Convert API period type to internal period type
     const internalPeriodType = this.convertPeriodType(periodType);
@@ -155,7 +164,10 @@ export class RateLimitRouteHandler {
     let subscriptionStartedAt: Date | null = null;
     let entitlements: string[] = [NONE_ENTITLEMENT];
     try {
-      const subscriptionInfo = await this.rcHelper.getSubscriptionInfo(userId);
+      const subscriptionInfo = await this.rcHelper.getSubscriptionInfo(
+        userId,
+        testMode
+      );
       subscriptionStartedAt = subscriptionInfo.subscriptionStartedAt;
       entitlements = subscriptionInfo.entitlements;
     } catch (error) {
