@@ -5,6 +5,7 @@ import type {
   RateLimitTier,
   RateLimits as ApiRateLimits,
   RateLimitUsage,
+  RateLimitResets,
   RateLimitHistoryData,
   RateLimitHistoryEntry,
   RateLimitPeriodType,
@@ -18,6 +19,11 @@ import {
   type RateLimitsConfig,
   type RateLimits as InternalRateLimits,
 } from "../types";
+import {
+  getNextHourStart,
+  getNextDayStart,
+  getNextSubscriptionMonthStart,
+} from "../utils/time";
 
 /**
  * Configuration for RateLimitRouteHandler.
@@ -134,11 +140,20 @@ export class RateLimitRouteHandler {
           : 0,
     };
 
+    // Calculate reset times
+    const now = new Date();
+    const resets: RateLimitResets = {
+      hourly: getNextHourStart(now).toISOString(),
+      daily: getNextDayStart(now).toISOString(),
+      monthly: getNextSubscriptionMonthStart(subscriptionStartedAt, now).toISOString(),
+    };
+
     return {
       tiers,
       currentEntitlement,
       currentLimits,
       currentUsage,
+      resets,
     };
   }
 
