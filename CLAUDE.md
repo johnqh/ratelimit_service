@@ -9,6 +9,7 @@ Shared rate limiting library based on RevenueCat entitlements.
 - **Language**: TypeScript (strict mode)
 - **Build**: Dual ESM/CJS output
 - **Runtime**: Bun
+- **Package Manager**: Bun (do not use npm/yarn/pnpm for installing dependencies)
 - **Testing**: bun:test
 - **Peer Dependencies**: drizzle-orm, hono
 
