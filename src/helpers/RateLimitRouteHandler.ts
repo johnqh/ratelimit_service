@@ -13,8 +13,8 @@ import type {
 import { RevenueCatHelper } from "./RevenueCatHelper";
 import { EntitlementHelper } from "./EntitlementHelper";
 import { RateLimitChecker } from "./RateLimitChecker";
+import { NONE_ENTITLEMENT } from "@sudobility/types";
 import {
-  NONE_ENTITLEMENT,
   PeriodType,
   type RateLimitsConfig,
   type RateLimits as InternalRateLimits,

@@ -1,7 +1,5 @@
-import {
-  NONE_ENTITLEMENT,
-  type RevenueCatSubscriberResponse,
-} from "../types/entitlements";
+import { NONE_ENTITLEMENT } from "@sudobility/types";
+import type { RevenueCatSubscriberResponse } from "../types/entitlements";
 import type { SubscriptionInfo } from "../types/responses";
 
 /**

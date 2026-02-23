@@ -4,7 +4,8 @@ import type { PgTable, TableConfig } from "drizzle-orm/pg-core";
 import { RevenueCatHelper } from "../helpers/RevenueCatHelper";
 import { EntitlementHelper } from "../helpers/EntitlementHelper";
 import { RateLimitChecker } from "../helpers/RateLimitChecker";
-import { NONE_ENTITLEMENT, type RateLimitsConfig } from "../types";
+import { NONE_ENTITLEMENT } from "@sudobility/types";
+import type { RateLimitsConfig } from "../types";
 
 /**
  * Configuration for the rate limit middleware factory.

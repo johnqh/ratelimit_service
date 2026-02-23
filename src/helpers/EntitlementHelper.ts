@@ -1,5 +1,5 @@
 import type { RateLimits, RateLimitsConfig } from "../types/rate-limits";
-import { NONE_ENTITLEMENT } from "../types/entitlements";
+import { NONE_ENTITLEMENT } from "@sudobility/types";
 
 /**
  * Helper class for resolving rate limits from entitlements.
