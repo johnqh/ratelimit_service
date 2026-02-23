@@ -54,6 +54,11 @@ export class RateLimitChecker {
   private readonly db: PostgresJsDatabase<any>;
   private readonly table: PgTable<TableConfig>;
 
+  /**
+   * Create a new RateLimitChecker.
+   *
+   * @param config - Configuration containing the Drizzle database instance and table reference
+   */
   constructor(config: RateLimitCheckerConfig) {
     this.db = config.db;
     this.table = config.table;
@@ -62,10 +67,16 @@ export class RateLimitChecker {
   /**
    * Check if request is within rate limits and increment counters.
    *
-   * @param userId - The user's ID
-   * @param limits - The rate limits to apply
-   * @param subscriptionStartedAt - When the subscription started (for monthly calculation)
-   * @returns Result indicating if request is allowed and remaining limits
+   * Checks hourly, daily, and monthly limits in order. If all checks pass,
+   * increments the corresponding counters in the database. If any limit is
+   * exceeded, returns immediately without incrementing.
+   *
+   * @param userId - The user's ID (e.g., Firebase UID)
+   * @param limits - The rate limits to apply. Use `undefined` for unlimited periods.
+   * @param subscriptionStartedAt - When the subscription started (for monthly period calculation).
+   *   If null, monthly periods fall back to calendar months (1st of each month).
+   * @returns Result indicating if request is allowed, remaining limits, and which limit was exceeded (if any)
+   * @throws Will propagate database errors if the underlying Drizzle queries fail
    */
   async checkAndIncrement(
     userId: string,
@@ -111,6 +122,17 @@ export class RateLimitChecker {
 
   /**
    * Get current usage without incrementing (for status queries).
+   *
+   * Unlike {@link checkAndIncrement}, this method only reads the current counters
+   * and does not modify any database state. Useful for displaying usage dashboards
+   * or status endpoints.
+   *
+   * @param userId - The user's ID (e.g., Firebase UID)
+   * @param limits - The rate limits to check against. Use `undefined` for unlimited periods.
+   * @param subscriptionStartedAt - When the subscription started (for monthly period calculation).
+   *   If null, monthly periods fall back to calendar months.
+   * @returns Result indicating if request would be allowed and remaining limits
+   * @throws Will propagate database errors if the underlying Drizzle queries fail
    */
   async checkOnly(
     userId: string,
@@ -181,6 +203,14 @@ export class RateLimitChecker {
 
   /**
    * Get current counts for each period type.
+   *
+   * Runs three parallel queries to fetch the current counter values for
+   * hourly, daily, and monthly periods.
+   *
+   * @param userId - The user's ID
+   * @param subscriptionStartedAt - Subscription start date for monthly period calculation
+   * @param now - Current timestamp used for period boundary calculation
+   * @returns Object with hourly, daily, and monthly count values (0 if no counter exists)
    */
   private async getCurrentCounts(
     userId: string,
@@ -210,6 +240,11 @@ export class RateLimitChecker {
 
   /**
    * Get the counter value for a specific period.
+   *
+   * @param userId - The user's ID
+   * @param periodType - The rate limit period type (hourly, daily, monthly)
+   * @param periodStart - The start timestamp of the current period window
+   * @returns The current request count, or 0 if no counter exists for this period
    */
   private async getCountForPeriod(
     userId: string,
@@ -240,6 +275,14 @@ export class RateLimitChecker {
 
   /**
    * Increment counters for enabled limit types.
+   *
+   * Only increments counters for periods that have defined (non-undefined) limits.
+   * Runs all increments in parallel for performance.
+   *
+   * @param userId - The user's ID
+   * @param limits - Rate limits configuration; only periods with defined limits are incremented
+   * @param subscriptionStartedAt - Subscription start date for monthly period calculation
+   * @param now - Current timestamp used for period boundary calculation
    */
   private async incrementCounters(
     userId: string,
@@ -287,6 +330,15 @@ export class RateLimitChecker {
 
   /**
    * Increment a specific period counter (upsert).
+   *
+   * If a counter row already exists for the given user/period/start combination,
+   * increments its request_count by 1. Otherwise, inserts a new row with
+   * request_count of 1.
+   *
+   * @param userId - The user's ID
+   * @param periodType - The rate limit period type
+   * @param periodStart - The start timestamp of the current period window
+   * @param now - Current timestamp used for the updated_at field
    */
   private async incrementPeriodCounter(
     userId: string,
@@ -334,6 +386,13 @@ export class RateLimitChecker {
 
   /**
    * Check limits and return result.
+   *
+   * Checks hourly, daily, and monthly limits in order. Returns the first
+   * exceeded limit encountered, or an allowed result if all checks pass.
+   *
+   * @param counts - Current usage counts for each period
+   * @param limits - Rate limits to check against. Periods with `undefined` are skipped (unlimited).
+   * @returns Check result with allowed status, remaining counts, and exceeded limit info
    */
   private checkLimits(
     counts: { hourly: number; daily: number; monthly: number },
@@ -384,6 +443,13 @@ export class RateLimitChecker {
 
   /**
    * Calculate remaining requests for each period.
+   *
+   * For defined limits, returns `max(0, limit - count)` to avoid negative values.
+   * For undefined (unlimited) limits, returns `undefined`.
+   *
+   * @param counts - Current usage counts for each period
+   * @param limits - Rate limits to calculate remaining against
+   * @returns Remaining request counts for each period
    */
   private calculateRemaining(
     counts: { hourly: number; daily: number; monthly: number },
@@ -407,6 +473,15 @@ export class RateLimitChecker {
 
   /**
    * Get the end of a period for history entries.
+   *
+   * Calculates the exclusive end timestamp for a given period, based on the
+   * period type and start date. For monthly periods, uses subscription start
+   * date for accurate billing cycle boundaries.
+   *
+   * @param periodType - The rate limit period type
+   * @param periodStart - The start timestamp of the period
+   * @param subscriptionStartedAt - Subscription start date for monthly period end calculation
+   * @returns The exclusive end timestamp of the period
    */
   private getPeriodEnd(
     periodType: PeriodType,

@@ -39,6 +39,12 @@ export class RevenueCatHelper {
   private readonly apiKey: string;
   private readonly baseUrl: string;
 
+  /**
+   * Create a new RevenueCatHelper.
+   *
+   * @param config - Configuration containing the API key and optional base URL.
+   *   The API key should be a RevenueCat secret key suitable for server-side use.
+   */
   constructor(config: RevenueCatHelperConfig) {
     this.apiKey = config.apiKey;
     this.baseUrl = config.baseUrl ?? "https://api.revenuecat.com/v1";

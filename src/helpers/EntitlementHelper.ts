@@ -24,18 +24,30 @@ import { NONE_ENTITLEMENT } from "@sudobility/types";
  * ```
  */
 export class EntitlementHelper {
+  /**
+   * Create a new EntitlementHelper.
+   *
+   * @param config - Rate limits configuration mapping entitlement names to their limits.
+   *   Must include a "none" key as the required fallback for users without subscriptions.
+   */
   constructor(private readonly config: RateLimitsConfig) {}
 
   /**
    * Get rate limits for a single entitlement.
    * Falls back to "none" limits if entitlement not found in config.
+   *
+   * @param entitlement - The entitlement name to look up
+   * @returns The rate limits for the entitlement, or "none" limits if not found
    */
   getRateLimits(entitlement: string): RateLimits;
 
   /**
    * Get rate limits for multiple entitlements.
    * Returns the upper bound (most permissive) of all entitlements.
-   * undefined (unlimited) always wins over any number.
+   * `undefined` (unlimited) always wins over any number.
+   *
+   * @param entitlements - Array of entitlement names to resolve. Empty array returns "none" limits.
+   * @returns The most permissive rate limits across all provided entitlements
    */
   getRateLimits(entitlements: string[]): RateLimits;
 
@@ -78,7 +90,10 @@ export class EntitlementHelper {
 
   /**
    * Get the maximum (most permissive) limit from an array.
-   * undefined (unlimited) always wins.
+   * `undefined` (unlimited) always wins.
+   *
+   * @param values - Array of limit values, where `undefined` means unlimited
+   * @returns The most permissive limit: `undefined` if any value is unlimited, otherwise the maximum number
    */
   private maxLimit(values: (number | undefined)[]): number | undefined {
     // If any value is undefined, result is unlimited

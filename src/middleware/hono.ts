@@ -31,11 +31,24 @@ export interface RateLimitMiddlewareConfig {
  * Create a Hono middleware for rate limiting based on RevenueCat entitlements.
  *
  * This middleware:
- * 1. Fetches user's subscription info from RevenueCat
- * 2. Resolves rate limits based on entitlements
- * 3. Checks and increments counters
- * 4. Returns 429 if rate limit exceeded
- * 5. Sets X-RateLimit-* headers
+ * 1. Optionally skips rate limiting via the `shouldSkip` callback
+ * 2. Extracts the user ID via the `getUserId` callback
+ * 3. Fetches user's subscription info from RevenueCat (falls back to "none" on error)
+ * 4. Resolves rate limits based on entitlements using the most permissive limits
+ * 5. Checks and increments counters in the database
+ * 6. Sets `X-RateLimit-Hourly-Remaining`, `X-RateLimit-Daily-Remaining`,
+ *    and `X-RateLimit-Monthly-Remaining` response headers
+ * 7. Returns 429 JSON response if rate limit exceeded, otherwise calls `next()`
+ *
+ * @param config - Middleware configuration options
+ * @param config.revenueCatApiKey - RevenueCat secret API key for server-side use
+ * @param config.rateLimitsConfig - Mapping of entitlement names to rate limits (must include "none")
+ * @param config.db - Drizzle PostgresJs database instance
+ * @param config.rateLimitsTable - The rate_limit_counters Drizzle table reference
+ * @param config.getUserId - Function to extract user ID from Hono context (sync or async)
+ * @param config.shouldSkip - Optional function to skip rate limiting (e.g., for admin tokens)
+ * @param config.getTestMode - Optional function to determine if sandbox purchases should be accepted
+ * @returns A Hono middleware function `(c: Context, next: Next) => Promise<Response | void>`
  *
  * @example
  * ```typescript

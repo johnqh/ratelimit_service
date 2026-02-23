@@ -14,7 +14,16 @@
 
 /**
  * Get the start of the current hour in UTC.
- * @example 14:35:22Z → 14:00:00Z
+ *
+ * Truncates minutes, seconds, and milliseconds to zero.
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing the top of the current hour in UTC
+ * @example
+ * ```typescript
+ * getCurrentHourStart(new Date("2025-06-15T14:35:22Z"))
+ * // Returns: 2025-06-15T14:00:00.000Z
+ * ```
  */
 export function getCurrentHourStart(now: Date = new Date()): Date {
   return new Date(
@@ -32,7 +41,14 @@ export function getCurrentHourStart(now: Date = new Date()): Date {
 
 /**
  * Get the start of the next hour in UTC.
- * @example 14:35:22Z → 15:00:00Z
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing the top of the next hour in UTC
+ * @example
+ * ```typescript
+ * getNextHourStart(new Date("2025-06-15T14:35:22Z"))
+ * // Returns: 2025-06-15T15:00:00.000Z
+ * ```
  */
 export function getNextHourStart(now: Date = new Date()): Date {
   const next = new Date(getCurrentHourStart(now));
@@ -42,7 +58,10 @@ export function getNextHourStart(now: Date = new Date()): Date {
 
 /**
  * Get the next hour reset timestamp.
- * @deprecated Use getNextHourStart instead
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing the next hour boundary
+ * @deprecated Use {@link getNextHourStart} instead
  */
 export function getNextHourReset(now: Date = new Date()): Date {
   return getNextHourStart(now);
@@ -54,7 +73,14 @@ export function getNextHourReset(now: Date = new Date()): Date {
 
 /**
  * Get the start of the current day in UTC (midnight).
- * @example 2025-01-15T14:35:22Z → 2025-01-15T00:00:00Z
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing midnight UTC of the current day
+ * @example
+ * ```typescript
+ * getCurrentDayStart(new Date("2025-01-15T14:35:22Z"))
+ * // Returns: 2025-01-15T00:00:00.000Z
+ * ```
  */
 export function getCurrentDayStart(now: Date = new Date()): Date {
   return new Date(
@@ -72,7 +98,14 @@ export function getCurrentDayStart(now: Date = new Date()): Date {
 
 /**
  * Get the start of the next day in UTC (midnight).
- * @example 2025-01-15T14:35:22Z → 2025-01-16T00:00:00Z
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing midnight UTC of the next day
+ * @example
+ * ```typescript
+ * getNextDayStart(new Date("2025-01-15T14:35:22Z"))
+ * // Returns: 2025-01-16T00:00:00.000Z
+ * ```
  */
 export function getNextDayStart(now: Date = new Date()): Date {
   const next = new Date(getCurrentDayStart(now));
@@ -82,7 +115,10 @@ export function getNextDayStart(now: Date = new Date()): Date {
 
 /**
  * Get the next day reset timestamp.
- * @deprecated Use getNextDayStart instead
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing the next day boundary
+ * @deprecated Use {@link getNextDayStart} instead
  */
 export function getNextDayReset(now: Date = new Date()): Date {
   return getNextDayStart(now);
@@ -211,7 +247,12 @@ export function getNextSubscriptionMonthStart(
 
 /**
  * Get the next month reset timestamp (calendar month).
- * @deprecated Use getNextSubscriptionMonthStart for subscription-based months
+ *
+ * Returns the first day of the next calendar month at midnight UTC.
+ *
+ * @param now - Reference date (defaults to current time)
+ * @returns Date object representing the first day of the next calendar month
+ * @deprecated Use {@link getNextSubscriptionMonthStart} for subscription-based months
  */
 export function getNextMonthReset(now: Date = new Date()): Date {
   return new Date(
@@ -225,6 +266,20 @@ export function getNextMonthReset(now: Date = new Date()): Date {
 
 /**
  * Get time until reset in human-readable format.
+ *
+ * Formats the duration between now and the reset timestamp into a compact
+ * human-readable string. Uses the largest meaningful units.
+ *
+ * @param resetAt - The reset timestamp
+ * @param now - Current time (defaults to `new Date()`)
+ * @returns Formatted string like "now", "30s", "45m", "2h 30m", or "3d 2h"
+ *
+ * @example
+ * ```typescript
+ * const now = new Date("2025-06-15T12:00:00Z");
+ * getTimeUntilReset(new Date("2025-06-15T14:30:00Z"), now) // "2h 30m"
+ * getTimeUntilReset(new Date("2025-06-15T11:00:00Z"), now) // "now" (past)
+ * ```
  */
 export function getTimeUntilReset(
   resetAt: Date,

@@ -53,7 +53,30 @@ const DEFAULT_DISPLAY_NAMES: Record<string, string> = {
 
 /**
  * Helper for rate limit API endpoints.
- * Provides data for /ratelimits and /ratelimits/history endpoints.
+ *
+ * Provides structured data for rate limit status and history endpoints.
+ * Combines RevenueCat subscription info, entitlement-based limit resolution,
+ * and database counter data into API-ready response formats.
+ *
+ * Used by consuming APIs to implement:
+ * - `GET /ratelimits` - Current limits, usage, and tier info
+ * - `GET /ratelimits/history/:periodType` - Historical usage data
+ *
+ * @example
+ * ```typescript
+ * const handler = new RateLimitRouteHandler({
+ *   revenueCatApiKey: process.env.REVENUECAT_API_KEY!,
+ *   rateLimitsConfig: config,
+ *   db,
+ *   rateLimitsTable: rateLimitCounters,
+ * });
+ *
+ * // In a Hono route:
+ * app.get("/ratelimits", async (c) => {
+ *   const data = await handler.getRateLimitsConfigData(userId);
+ *   return c.json({ success: true, data });
+ * });
+ * ```
  */
 export class RateLimitRouteHandler {
   private readonly rcHelper: RevenueCatHelper;
@@ -62,6 +85,12 @@ export class RateLimitRouteHandler {
   private readonly rateLimitsConfig: RateLimitsConfig;
   private readonly displayNames: Record<string, string>;
 
+  /**
+   * Create a new RateLimitRouteHandler.
+   *
+   * @param config - Configuration including RevenueCat API key, rate limits config,
+   *   database instance, table reference, and optional display name mappings.
+   */
   constructor(config: RateLimitRouteHandlerConfig) {
     this.rcHelper = new RevenueCatHelper({ apiKey: config.revenueCatApiKey });
     this.entitlementHelper = new EntitlementHelper(config.rateLimitsConfig);
@@ -218,6 +247,12 @@ export class RateLimitRouteHandler {
 
   /**
    * Get display name for an entitlement.
+   *
+   * Checks custom display names first, then defaults, then falls back
+   * to capitalizing the first letter of the entitlement name.
+   *
+   * @param entitlement - The entitlement identifier
+   * @returns Human-readable display name for the entitlement
    */
   private getDisplayName(entitlement: string): string {
     if (this.displayNames[entitlement]) {
@@ -230,6 +265,9 @@ export class RateLimitRouteHandler {
   /**
    * Get the primary entitlement from a list.
    * Returns the first entitlement that has configured limits, or "none".
+   *
+   * @param entitlements - Array of entitlement names from RevenueCat
+   * @returns The first non-"none" entitlement with configured limits, or "none"
    */
   private getPrimaryEntitlement(entitlements: string[]): string {
     for (const entitlement of entitlements) {
@@ -245,7 +283,10 @@ export class RateLimitRouteHandler {
 
   /**
    * Convert internal RateLimits to API RateLimits.
-   * Internal uses undefined for unlimited, API uses null.
+   * Internal uses `undefined` for unlimited, API uses `null`.
+   *
+   * @param limits - Internal rate limits with undefined for unlimited
+   * @returns API rate limits with null for unlimited
    */
   private convertLimits(limits: InternalRateLimits): ApiRateLimits {
     return {
@@ -257,6 +298,10 @@ export class RateLimitRouteHandler {
 
   /**
    * Convert API period type to internal period type.
+   *
+   * @param periodType - API period type string ("hour", "day", "month")
+   * @returns Internal PeriodType enum value
+   * @throws Error if an invalid period type is provided
    */
   private convertPeriodType(periodType: RateLimitPeriodType): PeriodType {
     switch (periodType) {
@@ -273,6 +318,10 @@ export class RateLimitRouteHandler {
 
   /**
    * Get the limit for a specific period type.
+   *
+   * @param limits - Internal rate limits
+   * @param periodType - API period type string ("hour", "day", "month")
+   * @returns The limit number for the period, or null if unlimited
    */
   private getLimitForPeriod(
     limits: InternalRateLimits,
