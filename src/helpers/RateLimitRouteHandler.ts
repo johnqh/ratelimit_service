@@ -174,7 +174,10 @@ export class RateLimitRouteHandler {
     const resets: RateLimitResets = {
       hourly: getNextHourStart(now).toISOString(),
       daily: getNextDayStart(now).toISOString(),
-      monthly: getNextSubscriptionMonthStart(subscriptionStartedAt, now).toISOString(),
+      monthly: getNextSubscriptionMonthStart(
+        subscriptionStartedAt,
+        now
+      ).toISOString(),
     };
 
     return {

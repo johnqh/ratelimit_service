@@ -33,10 +33,7 @@ import {
  * export const rateLimitCounters = createRateLimitCountersTable(mySchema, "myapp");
  * ```
  */
-export function createRateLimitCountersTable(
-  schema: any,
-  indexPrefix: string
-) {
+export function createRateLimitCountersTable(schema: any, indexPrefix: string) {
   return schema.table(
     "rate_limit_counters",
     {
@@ -49,11 +46,9 @@ export function createRateLimitCountersTable(
       updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     },
     (table: any) => ({
-      userPeriodUniqueIdx: uniqueIndex(`${indexPrefix}_rate_limit_user_period_idx`).on(
-        table.user_id,
-        table.period_type,
-        table.period_start
-      ),
+      userPeriodUniqueIdx: uniqueIndex(
+        `${indexPrefix}_rate_limit_user_period_idx`
+      ).on(table.user_id, table.period_type, table.period_start),
       userTypeIdx: index(`${indexPrefix}_rate_limit_user_type_idx`).on(
         table.user_id,
         table.period_type
@@ -88,11 +83,9 @@ export function createRateLimitCountersTablePublic(indexPrefix: string) {
       updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     },
     table => ({
-      userPeriodUniqueIdx: uniqueIndex(`${indexPrefix}_rate_limit_user_period_idx`).on(
-        table.user_id,
-        table.period_type,
-        table.period_start
-      ),
+      userPeriodUniqueIdx: uniqueIndex(
+        `${indexPrefix}_rate_limit_user_period_idx`
+      ).on(table.user_id, table.period_type, table.period_start),
       userTypeIdx: index(`${indexPrefix}_rate_limit_user_type_idx`).on(
         table.user_id,
         table.period_type

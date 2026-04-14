@@ -91,9 +91,7 @@ export function createRateLimitMiddleware(config: RateLimitMiddlewareConfig) {
     const userId = await config.getUserId(c);
 
     // Get testMode (defaults to false - production mode)
-    const testMode = config.getTestMode
-      ? await config.getTestMode(c)
-      : false;
+    const testMode = config.getTestMode ? await config.getTestMode(c) : false;
 
     // Get user's subscription info from RevenueCat
     let entitlements: string[];
