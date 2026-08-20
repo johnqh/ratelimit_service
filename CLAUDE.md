@@ -1,5 +1,10 @@
 # Subscription Service
 
+> **Git policy — never auto-commit or auto-push.** Leave your work in the working tree.
+> Run `git commit`, `git push`, `gh pr create`, or `scripts/push_all.sh` **only when the user
+> explicitly asks in that turn**. Approval for an earlier change does not carry forward, and
+> finishing a task is not permission to commit it.
+
 Shared rate limiting library based on RevenueCat entitlements.
 
 **npm**: `@sudobility/ratelimit_service` (public)
@@ -206,3 +211,7 @@ bun run verify    # Runs: typecheck -> lint -> test -> build
 - **`undefined` means unlimited** -- in rate limit configs, `undefined` for a period means no limit. Do not confuse with `0` (zero allowed).
 - **Monthly periods are subscription-relative, not calendar-relative** -- intentional. Calendar-month fallback only applies when `subscriptionStartedAt` is null.
 - **Multiple entitlements resolve to upper bound** -- the most permissive limit wins.
+
+## Git Workflow
+
+- Do not use feature branches for code changes. Always stay on the current branch.
